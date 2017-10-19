@@ -1,14 +1,14 @@
 from src import OpenPIV as piv
 
-# name of frames saved in images-folder
-frame_a = "56"
-frame_b = "58"
+# Name of frames saved in images-folder
+frame_a = "a_10kfps"
+frame_b = "b_10kfps"
 
 # Initial field settings
 window_size = 24
 overlap = 12
-dt = 0.02
-search_area_size = 64
+dt = 1./10000
+search_area_size = 32
 sig2noise_method ='peak2peak'
 
 # Mask settings
@@ -27,5 +27,6 @@ piv.plot_mpl(x,y,u,v,132)
 
 u, v = piv.replace_outliers( u, v, method, kernel_size)
 piv.plot_mpl(x,y,u,v,133)
+# piv.plot_mpl(x,y,u,v,111)
 
 piv.plot_show()

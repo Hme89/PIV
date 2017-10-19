@@ -31,12 +31,14 @@ def field(frame_a, frame_b, window_size, overlap, dt, search_area_size, sig2nois
     print("Shape A: ",frame_a.shape)
     print("Shape B: ",frame_b.shape)
 
+    assert frame_a.shape == frame_b.shape
+
     u, v, sig2noise = openpiv.process.extended_search_area_piv( frame_a, frame_b,
         window_size=window_size,
         overlap=overlap,
-        dt=0.02,
-        search_area_size=64,
-        sig2noise_method='peak2peak'
+        dt=dt,
+        search_area_size=search_area_size,
+        sig2noise_method=sig2noise_method
         )
 
     x, y = openpiv.process.get_coordinates(
