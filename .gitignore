@@ -1,3 +1,10 @@
 __pycache__/
 *.log
 *.html
+bin
+lib*
+openpiv
+share
+pip-selfcheck*
+pyvenv.*
+images/*

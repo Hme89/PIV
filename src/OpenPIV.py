@@ -1,4 +1,4 @@
-import os
+import sys, os
 import openpiv.tools
 import openpiv.process
 import openpiv.scaling
@@ -11,27 +11,39 @@ import matplotlib.pyplot as plt
 import plotly as ply
 import plotly.figure_factory as ff
 
-def read_image(filename):
-    "Smart file finder"
-    path = os.path.join("images/","{}.png".format(filename))
-    return openpiv.tools.imread(path).astype(np.int32)
+def read_array(path, filename):
+    filepath = os.path.join(path, filename,)
+    return np.fromfile(filepath, dtype=np.int16).reshape(1024,1024).astype(np.int32)
+
+def cut_array(a, cut):
+    x0 = cut[0][0]; x1 = cut[0][1]
+    y0 = cut[1][0]; y1 = cut[1][1]
+    return a[x0:x1, y0:y1]
+
+def imshow(img, sub=111):
+    plt.subplot(sub)
+    plt.imshow(img, cmap="binary_r")
 
 def plot_mpl(x,y,u,v,sub):
     plt.subplot(sub)
     plt.quiver(x,y,u,v)
 
+
 def plot_ply(x,y,u,v,sub):
     fig = ff.create_quiver(x,y,u,v,sub)
     ply.offline.plot(fig, filename="images/plot1.html")
 
-def field(frame_a, frame_b, window_size, overlap, dt, search_area_size, sig2noise_method):
-    frame_a  = read_image(frame_a)
-    frame_b  = read_image(frame_b)
 
-    print("Shape A: ",frame_a.shape)
-    print("Shape B: ",frame_b.shape)
+def field(path, a, b, cut, window_size, overlap, dt, search_area_size, sig2noise_method, cutoff=None):
+
+    frame_a  = cut_array(read_array(path, a), cut)
+    frame_b  = cut_array(read_array(path, b), cut)
+
+    # frame_a  = openpiv.tools.imread( '/home/hme/Sandbox/exp1_001_a.bmp' ).astype(np.int32)
+    # frame_b  = openpiv.tools.imread( '/home/hme/Sandbox/exp1_001_b.bmp' ).astype(np.int32)
 
     assert frame_a.shape == frame_b.shape
+    print("Shape of frames: ",frame_a.shape)
 
     u, v, sig2noise = openpiv.process.extended_search_area_piv( frame_a, frame_b,
         window_size=window_size,
@@ -47,9 +59,13 @@ def field(frame_a, frame_b, window_size, overlap, dt, search_area_size, sig2nois
         overlap=overlap
         )
 
-    assert len(set( [i.shape for i in [x,y,u,v]] )) == 1
+    if cutoff:
+        cutoff(u, v, cutoff)
 
-    return x, y, u, v, sig2noise
+    assert len(set( [i.shape for i in [x,y,u,v]] )) == 1# path="/run/user/1000/gvfs/sftp:host=128.39.34.83,user=sftp/PIV/28-10-17/test4-10kfps1-8aperture/C001H001S0001/"
+
+
+    return x, y, u, v, sig2noise, frame_a, frame_b
 
 
 def mask(u, v, sig2noise, threshold=1.3):
@@ -60,5 +76,26 @@ def replace_outliers(u, v, method="localmean", kernel_size=2):
     u, v = openpiv.filters.replace_outliers( u, v, method=method, kernel_size=kernel_size)
     return u, v
 
+def scale(x, y, u, v, scaling_factor):
+    return openpiv.scaling.uniform(x,y,u,v,scaling_factor = scaling_factor)
+
+def cutoff(u, v, cut):
+    n = 0
+    assert u.shape == v.shape
+    shp = u.shape
+    for i in range(shp[0]):
+        for j in range(shp[1]):
+            if (u[i,j]**2 + v[i,j]**2)**0.5 > cut:
+                u[i,j] = 0
+                v[i,j] = 0
+                n += 1
+    print("{} values over {} cut from solution arrays...".format(n, cut) )
+
+
+
 def plot_show():
     plt.show()
+
+def plot_save(fname="img", format="pdf"):
+    plt.savefig("images/{}.pdf".format(fname))
+    plt.clf()
