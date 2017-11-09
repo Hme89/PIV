@@ -1,8 +1,8 @@
 #!bin/python
 from src import OpenPIV as piv
 import numpy as np
-import os, sys
-import json
+import os
+import pickle
 
 path = "/run/user/1000/gvfs/sftp:host=casey,user=sftp/PIV/9_november/Kamera_test_1_20k_fps_25%/Bilder_til_henrik/C001H001S0001/"
 
@@ -45,7 +45,7 @@ for i in range(0, len(files) - 1, 2):
     x,y,u,v,sig2n,a,b = piv.field(path, a, b, cut, window_size, overlap, dt,
         search_area_size, sig2noise_method, cutoff=cutoff)
     piv.imshow(a)
-    piv.plot_save()
+    piv.plot_save("img_{:0>2}".format(i))
     # piv.plot_show()
     # piv.imshow(a,141)search_area_size = window_size
 
@@ -63,15 +63,15 @@ for i in range(0, len(files) - 1, 2):
 
     x,y,u,v = piv.scale(x,y,u,v,scaling_factor)
 
-    # solutions.append([u,v,x,y,a,b])
+    solutions.append([u,v,x,y,a,b])
 
     # piv.plot_mpl(x,y,u,v,111)
     piv.plot_save(i)
     # piv.plot_show()
 
+with open('data.pcl', 'wb') as f:
+    pickle.dump(solutions, f, pickle.HIGHEST_PROTOCOL)
 
 for sol in solutions:
-    a = sol[2]**2 + sol[3]**2
-    a = a**0.5
-    a = np.max(a)
-    print(a)
+    a = (sol[0]**2 + sol[1]**2)**0.5
+    print("max:",np.nanmax(a))
