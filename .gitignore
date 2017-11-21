@@ -5,6 +5,8 @@ bin
 lib*
 openpiv
 share
+include
 pip-selfcheck*
 pyvenv.*
 images/*
+solution_*

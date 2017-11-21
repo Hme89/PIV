@@ -62,8 +62,7 @@ def field(path, a, b, cut, window_size, overlap, dt, search_area_size, sig2noise
     if cutoff:
         cutoff(u, v, cutoff)
 
-    assert len(set( [i.shape for i in [x,y,u,v]] )) == 1# path="/run/user/1000/gvfs/sftp:host=128.39.34.83,user=sftp/PIV/28-10-17/test4-10kfps1-8aperture/C001H001S0001/"
-
+    assert len(set( [i.shape for i in [x,y,u,v]] )) == 1
 
     return x, y, u, v, sig2noise, frame_a, frame_b
 
@@ -92,10 +91,9 @@ def cutoff(u, v, cut):
     print("{} values over {} cut from solution arrays...".format(n, cut) )
 
 
-
 def plot_show():
     plt.show()
 
 def plot_save(fname="img", format="pdf"):
-    plt.savefig("images/{}.pdf".format(fname))
+    plt.savefig("images/{:0>3}.pdf".format(fname))
     plt.clf()
